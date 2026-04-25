@@ -1,19 +1,17 @@
-import {
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
-import { CatsModule } from './cats/cats.module';
-import { logger } from './logger.middleware';
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { DatabaseModule, validationSchema } from './database';
+import { databaseConfig } from './config/env/database.config';
+import { appConfig } from './config/env/app.config';
 
 @Module({
-  imports: [CatsModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validationSchema,
+      load: [databaseConfig, appConfig],
+    }),
+    DatabaseModule,
+  ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(logger)
-      .forRoutes({ path: 'cats', method: RequestMethod.POST });
-  }
-}
+export class AppModule {}
