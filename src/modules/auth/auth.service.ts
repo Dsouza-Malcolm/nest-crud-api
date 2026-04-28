@@ -1,14 +1,13 @@
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { UserService } from '../users/user.service';
-import { UserResponseDto } from '../users/dto/user-response.dto';
-import { UserMapper } from '../users/mappers/user.mapper';
-import { hashPassword, verifyPassword } from '../../core/utils/auth/hash.util';
+import type { ConfigType } from '@nestjs/config';
 import { JwtService, JwtSignOptions } from '@nestjs/jwt';
 import { jwtConfig } from '../../core/config/env/jwt.config';
-import type { ConfigType } from '@nestjs/config';
+import { hashPassword, verifyPassword } from '../../core/utils/auth/hash.util';
+import { User } from '../users/entities/user.entity';
+import { UserMapper } from '../users/mappers/user.mapper';
+import { UserService } from '../users/user.service';
 import { RegisterDto } from './dto/register.dto';
 import { AuthResult } from './types/auth.type';
-import { User } from '../users/entities/user.entity';
 import { JwtPayload } from './types/jwt-payload.type';
 
 @Injectable()
@@ -20,10 +19,7 @@ export class AuthService {
     private jwt: ConfigType<typeof jwtConfig>,
   ) {}
 
-  async validateUser(
-    email: string,
-    password: string,
-  ): Promise<UserResponseDto | null> {
+  async validateUser(email: string, password: string): Promise<User | null> {
     const user = await this.userService.findUserByEmail(email);
 
     if (!user) throw new UnauthorizedException('Invalid credentials');
@@ -31,11 +27,11 @@ export class AuthService {
     const isValid = await verifyPassword(user.password, password);
     if (!isValid) throw new UnauthorizedException('Invalid credentials');
 
-    return UserMapper.toResponse(user);
+    return user;
   }
 
-  async login(user: UserResponseDto) {
-    console.log(user);
+  async login(user: User): Promise<AuthResult> {
+    return this.buildAuthResult(user);
   }
 
   async register(dto: RegisterDto): Promise<AuthResult> {
@@ -43,8 +39,20 @@ export class AuthService {
     return this.buildAuthResult(user);
   }
 
+  async refresh(user: User): Promise<AuthResult> {
+    return this.buildAuthResult(user);
+  }
+
+  async logout(userId: string): Promise<void> {
+    await this.userService.updateRefreshToken(userId, null);
+  }
+
   private async buildAuthResult(user: User): Promise<AuthResult> {
-    const payload: JwtPayload = { sub: user.id, email: user.email };
+    const payload: JwtPayload = {
+      sub: user.id,
+      email: user.email,
+      role: user.role,
+    };
 
     const [accessToken, refreshToken] = await Promise.all([
       this.jwtService.signAsync(payload, {

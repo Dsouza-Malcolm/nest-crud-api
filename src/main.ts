@@ -3,6 +3,7 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { TrimStringPipe } from './common/pipes/trim-string.pipe';
 import cookieParser from 'cookie-parser';
+import { ResponseInterceptor } from './common/interceptors/response.interceptor';
 
 const API_PREFIX = 'api/v1';
 
@@ -16,8 +17,11 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      stopAtFirstError: true,
     }),
   );
+
+  app.useGlobalInterceptors(new ResponseInterceptor());
 
   app.enableCors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',

@@ -1,5 +1,6 @@
 import {
   IsEmail,
+  IsNotEmpty,
   IsString,
   Matches,
   MaxLength,
@@ -9,11 +10,13 @@ import { Transform } from 'class-transformer';
 
 export class RegisterDto {
   @IsString()
+  @IsNotEmpty()
   @MinLength(2)
   @MaxLength(50)
   name!: string;
 
   @IsEmail()
+  @IsNotEmpty()
   @Transform(({ value }: { value: unknown }) => {
     if (typeof value === 'string') {
       return value.toLowerCase().trim();
@@ -23,9 +26,10 @@ export class RegisterDto {
   email!: string;
 
   @IsString()
+  @IsNotEmpty()
   @MinLength(8)
   @MaxLength(100)
-  @Matches(/^(?=.*[A-Z])(?=.*\d).+$/, {
+  @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).+$/, {
     message:
       'Password must contain at least one uppercase letter and one number',
   })

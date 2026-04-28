@@ -1,9 +1,7 @@
-import { UserResponseDto } from '../modules/users/dto/user-response.dto';
+import { User } from '../../modules/users/entities/user.entity';
 
-declare global {
-  namespace Express {
-    export interface Request {
-      user?: UserResponseDto;
-    }
+declare module 'express' {
+  interface Request {
+    user?: User;
   }
 }
