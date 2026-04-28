@@ -31,11 +31,14 @@ export class ResponseInterceptor<T> implements NestInterceptor<
     const res = context.switchToHttp().getResponse<Response>();
 
     return next.handle().pipe(
-      map((data) => ({
-        statusCode: res.statusCode,
-        message: data?.message || 'Success',
-        data: data?.data,
-      })),
+      map((data) => {
+        console.log(data);
+        return {
+          statusCode: res.statusCode,
+          message: data?.message || 'Success',
+          data: data?.data,
+        };
+      }),
     );
   }
 }

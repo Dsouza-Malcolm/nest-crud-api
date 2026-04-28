@@ -14,4 +14,8 @@ export class TaskMapper {
       updatedAt: task.updatedAt,
     };
   }
+
+  static toList(tasks: Task[]): TaskResponseDto[] {
+    return tasks.map((task) => this.toResponse(task));
+  }
 }
