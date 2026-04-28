@@ -4,9 +4,11 @@ import {
   DeleteDateColumn,
   Entity,
   Index,
+  OneToMany,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+import { Task } from '../../tasks/entities/task.entity';
 
 export enum Role {
   USER = 'user',
@@ -37,6 +39,9 @@ export class User {
 
   @Column({ type: 'text', nullable: true })
   hashedRefreshToken!: string | null;
+
+  @OneToMany(() => Task, (task) => task.user)
+  tasks!: Task[];
 
   @CreateDateColumn({ type: 'timestamp' })
   createdAt!: Date;
