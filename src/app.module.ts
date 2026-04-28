@@ -7,6 +7,8 @@ import { HealthModule } from './modules/health/health.module';
 import { UserModule } from './modules/users/user.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { jwtConfig } from './core/config/env/jwt.config';
+import { TasksModule } from './tasks/tasks.module';
+import { TasksModule } from './modules/tasks/tasks.module';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { jwtConfig } from './core/config/env/jwt.config';
     HealthModule,
     UserModule,
     AuthModule,
+    TasksModule,
   ],
 })
 export class AppModule {}
