@@ -4,11 +4,24 @@ import { ValidationPipe } from '@nestjs/common';
 import { TrimStringPipe } from './common/pipes/trim-string.pipe';
 import cookieParser from 'cookie-parser';
 import { ResponseInterceptor } from './common/interceptors/response.interceptor';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 
 const API_PREFIX = 'api/v1';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  const config = new DocumentBuilder()
+    .setTitle('Task Manager API')
+    .setDescription('API documentation for Task Manager')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+
+  SwaggerModule.setup('docs', app, document);
+
   app.use(cookieParser());
   app.setGlobalPrefix(API_PREFIX);
   app.useGlobalPipes(
