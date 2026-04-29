@@ -47,5 +47,5 @@ export class Task {
   updatedAt!: Date;
 
   @DeleteDateColumn()
-  deletedAt?: Date;
+  deletedAt!: Date | null;
 }

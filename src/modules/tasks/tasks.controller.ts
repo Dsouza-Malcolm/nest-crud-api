@@ -14,10 +14,11 @@ import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAccessGuard } from '../../common/guards/jwt-access.guard';
 import { User } from '../users/entities/user.entity';
 import { CreateTaskDto } from './dto/create-task.dto';
+import { TaskQueryDto } from './dto/task-query.dto';
+import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskMapper } from './mappers/task.mapper';
 import { TasksService } from './tasks.service';
-import { UpdateTaskDto } from './dto/update-task.dto';
-import { TaskQueryDto } from './dto/task-query.dto';
+import { BulkCompleteDto } from './dto/bulk-complete.dto';
 
 @Controller('tasks')
 @UseGuards(JwtAccessGuard)
@@ -90,6 +91,31 @@ export class TasksController {
     return {
       message: 'Task deleted successfully',
       data: null,
+    };
+  }
+
+  @Post(':id/restore')
+  async restore(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: User,
+  ) {
+    const task = await this.taskService.restore(id, user.id);
+
+    return {
+      message: 'Task restored successfully',
+      data: {
+        task: TaskMapper.toResponse(task),
+      },
+    };
+  }
+
+  @Patch('bulk-complete')
+  async bulkComplete(@Body() dto: BulkCompleteDto, @CurrentUser() user: User) {
+    const result = await this.taskService.bulkComplete(dto.ids, user.id);
+
+    return {
+      message: 'Tasks marked as completed',
+      data: result,
     };
   }
 }

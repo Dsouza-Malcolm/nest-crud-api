@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
@@ -10,6 +10,7 @@ import {
   SortQuery,
   TASK_SORT_FIELDS,
 } from './enums/task-query.enum';
+import { TaskStatus } from './enums/task.enum';
 
 @Injectable()
 export class TasksService {
@@ -40,16 +41,11 @@ export class TasksService {
       status,
     } = query;
 
-    console.log({
-      sort,
-      order,
-      TASK_SORT_FIELDS,
-      mapped: TASK_SORT_FIELDS[sort],
-    });
-
     const queryBuilder = this.taskRepo.createQueryBuilder('task');
 
-    queryBuilder.where('task.userId = :userId', { userId });
+    queryBuilder
+      .where('task.userId = :userId', { userId })
+      .andWhere('task.deletedAt IS NULL');
 
     if (status) {
       queryBuilder.andWhere('task.status = :status', { status });
@@ -132,5 +128,36 @@ export class TasksService {
     if (result.affected === 0) {
       throw new NotFoundException('Task not found');
     }
+  }
+
+  async restore(taskId: string, userId: string) {
+    const result = await this.taskRepo.restore({
+      id: taskId,
+      userId,
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Task not found ');
+    }
+
+    return this.findOne(taskId, userId);
+  }
+
+  async bulkComplete(ids: string[], userId: string) {
+    if (!ids.length) {
+      return { affected: 0 };
+    }
+
+    const result = await this.taskRepo.update(
+      {
+        id: In(ids),
+        userId,
+      },
+      { status: TaskStatus.DONE },
+    );
+
+    return {
+      affected: result.affected ?? 0,
+    };
   }
 }
