@@ -119,6 +119,19 @@ export class TasksService {
     return await this.taskRepo.save(task);
   }
 
+  async updateStatus(taskId: string, userId: string, status: TaskStatus) {
+    const result = await this.taskRepo.update(
+      { id: taskId, userId },
+      { status },
+    );
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Task not found');
+    }
+
+    return { status };
+  }
+
   async delete(taskId: string, userId: string): Promise<void> {
     const result = await this.taskRepo.softDelete({
       id: taskId,

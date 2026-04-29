@@ -19,6 +19,8 @@ import { UpdateTaskDto } from './dto/update-task.dto';
 import { TaskMapper } from './mappers/task.mapper';
 import { TasksService } from './tasks.service';
 import { BulkCompleteDto } from './dto/bulk-complete.dto';
+import { ParseTaskStatusPipe } from './pipes/parse-task-status.pipe';
+import { TaskStatus } from './enums/task.enum';
 
 @Controller('tasks')
 @UseGuards(JwtAccessGuard)
@@ -77,6 +79,23 @@ export class TasksController {
       message: 'Task updated successfully',
       data: {
         task: TaskMapper.toResponse(updatedTask),
+      },
+    };
+  }
+
+  @Patch(':id/status')
+  async updateStatus(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @CurrentUser() user: User,
+    @Body('status', ParseTaskStatusPipe) status: TaskStatus,
+  ) {
+    await this.taskService.updateStatus(id, user.id, status);
+
+    return {
+      message: 'Task status updated successfully',
+      data: {
+        id,
+        status,
       },
     };
   }
