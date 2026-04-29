@@ -48,6 +48,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
       }
     }
 
+    this.logger.error(
+      exception instanceof Error ? exception.stack : String(exception),
+    );
+
     const body: ErrorResponse = {
       success: false,
       statusCode: status,

@@ -4,6 +4,12 @@ import { Repository } from 'typeorm';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { Task } from './entities/task.entity';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { TaskQueryDto } from './dto/task-query.dto';
+import {
+  SortOrder,
+  SortQuery,
+  TASK_SORT_FIELDS,
+} from './enums/task-query.enum';
 
 @Injectable()
 export class TasksService {
@@ -23,12 +29,70 @@ export class TasksService {
     return await this.taskRepo.save(task);
   }
 
-  async findAll(userId: string): Promise<Task[]> {
-    const tasks = await this.taskRepo.find({
-      where: { userId },
+  async findAll(userId: string, query: TaskQueryDto) {
+    const {
+      limit = 10,
+      order = SortOrder.DESC,
+      page = 1,
+      priority,
+      search,
+      sort = SortQuery.CREATED_AT,
+      status,
+    } = query;
+
+    console.log({
+      sort,
+      order,
+      TASK_SORT_FIELDS,
+      mapped: TASK_SORT_FIELDS[sort],
     });
 
-    return tasks;
+    const queryBuilder = this.taskRepo.createQueryBuilder('task');
+
+    queryBuilder.where('task.userId = :userId', { userId });
+
+    if (status) {
+      queryBuilder.andWhere('task.status = :status', { status });
+    }
+
+    if (priority) {
+      queryBuilder.andWhere('task.priority = :priority', { priority });
+    }
+
+    if (search) {
+      queryBuilder.andWhere(
+        `
+        (
+          task.title ILIKE :search
+          OR
+          task.description ILIKE :search
+        )
+        `,
+        {
+          search: `%${search}%`,
+        },
+      );
+    }
+
+    queryBuilder.orderBy(
+      TASK_SORT_FIELDS[sort],
+      order?.toUpperCase() as 'ASC' | 'DESC',
+    );
+
+    const skip = (page - 1) * limit;
+    queryBuilder.skip(skip).take(limit);
+
+    const [tasks, total] = await queryBuilder.getManyAndCount();
+
+    return {
+      tasks,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(taskId: string, userId: string): Promise<Task> {

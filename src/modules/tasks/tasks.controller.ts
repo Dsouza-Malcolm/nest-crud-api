@@ -7,6 +7,7 @@ import {
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
@@ -16,6 +17,7 @@ import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskMapper } from './mappers/task.mapper';
 import { TasksService } from './tasks.service';
 import { UpdateTaskDto } from './dto/update-task.dto';
+import { TaskQueryDto } from './dto/task-query.dto';
 
 @Controller('tasks')
 @UseGuards(JwtAccessGuard)
@@ -35,13 +37,14 @@ export class TasksController {
   }
 
   @Get()
-  async findAll(@CurrentUser() user: User) {
-    const tasks = await this.taskService.findAll(user.id);
+  async findAll(@CurrentUser() user: User, @Query() query: TaskQueryDto) {
+    const { tasks, ...result } = await this.taskService.findAll(user.id, query);
 
     return {
       message: 'Task retrieved successfully',
       data: {
         tasks: TaskMapper.toList(tasks),
+        ...result,
       },
     };
   }
