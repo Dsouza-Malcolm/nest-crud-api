@@ -63,4 +63,20 @@ describe('TaskService', () => {
     expect(result).toEqual(mockTask);
     expect(mockRepo.createTask).toHaveBeenCalledWith(dto, 'user-1');
   });
+
+  it('should delete a task', async () => {
+    mockRepo.softDelete.mockResolvedValue({ affected: 1 });
+
+    await service.delete('task-1', 'user-1');
+
+    expect(mockRepo.softDelete).toHaveBeenCalledWith('task-1', 'user-1');
+  });
+
+  it('should throw NotFoundException when task to delete is not found', async () => {
+    mockRepo.softDelete.mockResolvedValue({ affected: 0 });
+
+    await expect(service.delete('task-1', 'user-1')).rejects.toThrow(
+      NotFoundException,
+    );
+  });
 });
