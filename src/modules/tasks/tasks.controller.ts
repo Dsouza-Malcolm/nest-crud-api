@@ -13,14 +13,14 @@ import {
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { JwtAccessGuard } from '../../common/guards/jwt-access.guard';
 import { User } from '../users/entities/user.entity';
+import { BulkCompleteDto } from './dto/bulk-complete.dto';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { TaskQueryDto } from './dto/task-query.dto';
 import { UpdateTaskDto } from './dto/update-task.dto';
-import { TaskMapper } from './mappers/task.mapper';
-import { TasksService } from './tasks.service';
-import { BulkCompleteDto } from './dto/bulk-complete.dto';
-import { ParseTaskStatusPipe } from './pipes/parse-task-status.pipe';
 import { TaskStatus } from './enums/task.enum';
+import { TaskMapper } from './mappers/task.mapper';
+import { ParseTaskStatusPipe } from './pipes/parse-task-status.pipe';
+import { TasksService } from './tasks.service';
 
 @Controller('tasks')
 @UseGuards(JwtAccessGuard)
