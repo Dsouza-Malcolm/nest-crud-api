@@ -1,6 +1,7 @@
 import { NotFoundException } from '@nestjs/common';
 import { TaskRepository } from './repositories/task.repository';
 import { TasksService } from './tasks.service';
+import { CreateTaskDto } from './dto/create-task.dto';
 
 describe('TaskService', () => {
   let service: TasksService;
@@ -46,5 +47,20 @@ describe('TaskService', () => {
     await expect(service.findOne('uuid-1', 'user-1')).rejects.toThrow(
       NotFoundException,
     );
+  });
+
+  it('should create a new task', async () => {
+    const dto: CreateTaskDto = { title: 'Test', description: 'Desc' } as any;
+    const mockTask = {
+      id: 'uuid-1',
+      title: 'Test task',
+      userId: 'user-1',
+    } as any;
+    mockRepo.createTask.mockResolvedValue(mockTask);
+
+    const result = await service.create(dto, 'user-1');
+
+    expect(result).toEqual(mockTask);
+    expect(mockRepo.createTask).toHaveBeenCalledWith(dto, 'user-1');
   });
 });
