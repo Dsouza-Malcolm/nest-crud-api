@@ -21,12 +21,19 @@ import { TaskStatus } from './enums/task.enum';
 import { TaskMapper } from './mappers/task.mapper';
 import { ParseTaskStatusPipe } from './pipes/parse-task-status.pipe';
 import { TasksService } from './tasks.service';
+import { ApiCookieAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Tasks')
+@ApiCookieAuth()
 @Controller('tasks')
 @UseGuards(JwtAccessGuard)
 export class TasksController {
   constructor(private taskService: TasksService) {}
 
+  @ApiOperation({
+    summary: 'Create a new task',
+    description: 'Creates a task for the authenticated user',
+  })
   @Post()
   async create(@Body() dto: CreateTaskDto, @CurrentUser() user: User) {
     const task = await this.taskService.create(dto, user.id);
@@ -39,6 +46,11 @@ export class TasksController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Get all tasks',
+    description:
+      'Retrieve tasks with filtering, pagination, sorting, and search',
+  })
   @Get()
   async findAll(@CurrentUser() user: User, @Query() query: TaskQueryDto) {
     const { tasks, ...result } = await this.taskService.findAll(user.id, query);
@@ -52,6 +64,10 @@ export class TasksController {
     };
   }
 
+  @Get(':id')
+  @ApiOperation({
+    summary: 'Get a task by ID',
+  })
   @Get(':id')
   async findOne(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -68,6 +84,10 @@ export class TasksController {
   }
 
   @Patch(':id')
+  @ApiOperation({
+    summary: 'Update a task',
+  })
+  @Patch(':id')
   async update(
     @Param('id', new ParseUUIDPipe()) id: string,
     @Body() dto: UpdateTaskDto,
@@ -83,6 +103,10 @@ export class TasksController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Update task status',
+    description: 'Updates only the status field of a task',
+  })
   @Patch(':id/status')
   async updateStatus(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -101,6 +125,10 @@ export class TasksController {
   }
 
   @Delete(':id')
+  @ApiOperation({
+    summary: 'Soft delete a task',
+  })
+  @Delete(':id')
   async delete(
     @Param('id', new ParseUUIDPipe()) id: string,
     @CurrentUser() user: User,
@@ -113,6 +141,9 @@ export class TasksController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Restore a deleted task',
+  })
   @Post(':id/restore')
   async restore(
     @Param('id', new ParseUUIDPipe()) id: string,
@@ -128,6 +159,9 @@ export class TasksController {
     };
   }
 
+  @ApiOperation({
+    summary: 'Mark multiple tasks as completed',
+  })
   @Patch('bulk-complete')
   async bulkComplete(@Body() dto: BulkCompleteDto, @CurrentUser() user: User) {
     const result = await this.taskService.bulkComplete(dto.ids, user.id);
